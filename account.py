@@ -61,18 +61,19 @@ def show_accounts(accounts):
                 print(f"{i}.")
                 print(account)
 
-        option = input("Press Enter to continue to nex page or enter 'x' to exit the viewing : ")
+        option = input("Press Enter to continue to next page or enter 'x' to exit the viewing : ")
         if option.lower() == 'x':
             break
 
 
 def display_menu():
-    print("===== Account Management Menu =====")
+    print("\n===== Account Management Menu =====\n")
     print("1. Add Account")
     print("2. View Accounts")
     print("3. Edit Account")
     print("4. Delete Account")
     print("5. Exit")
+    print("\n===== Account Management Menu =====\n")
 
 
 def check_account_exists(account_code):
@@ -124,7 +125,7 @@ def add_account():
     print("Account added successfully.")
 
     while True:
-        save_option = input("Do you want to save more accounts? (y/n): ")
+        save_option = input("Do you want to save more accounts? (y/n): \n")
         if save_option.lower() == "y":
             add_account()
         elif save_option.lower() == "n":
@@ -277,7 +278,7 @@ def delete_account():
                 print("Invalid option. Please enter 'y' to delete more accounts or 'n' to exit.")
 
 
-def main():
+def account_management():
     create_table()
 
     while True:
@@ -307,4 +308,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    account_management()
