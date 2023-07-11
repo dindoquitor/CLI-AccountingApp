@@ -1,6 +1,7 @@
 import sqlite3
 import clear_screen as clean
 
+
 class Account:
     def __init__(self, account_code, account_name, normal_balance):
         self.account_code = account_code
@@ -61,7 +62,7 @@ def show_accounts(accounts):
                 print(f"{i}.")
                 print(account)
 
-        option = input("Press Enter to continue to next page or enter 'x' to exit the viewing : ")
+        option = input("Type 'x' and press Enter to exit the viewing mode : ")
         if option.lower() == 'x':
             break
 
@@ -135,6 +136,7 @@ def add_account():
 
 
 def edit_account():
+    global account_index
     while True:
         accounts = get_accounts()
         show_accounts(accounts)

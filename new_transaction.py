@@ -20,9 +20,8 @@ def is_valid_reference_code(reference_code):
 
 
 class Transaction:
-    def __init__(self, index, description, debit_amount, debit_account_code, credit_amount, credit_account_code,
+    def __init__(self, description, debit_amount, debit_account_code, credit_amount, credit_account_code,
                  reference_date, reference_code):
-        self.index = index
         self.description = description
         self.debit_amount = debit_amount
         self.debit_account_code = debit_account_code
@@ -32,8 +31,7 @@ class Transaction:
         self.reference_code = reference_code
 
     def __str__(self):
-        return f"Index: {self.index}\n" \
-               f"Description: {self.description}\n" \
+        return f"Description: {self.description}\n" \
                f"Debit Amount: {self.debit_amount}\n" \
                f"Debit Account Code: {self.debit_account_code}\n" \
                f"Credit Amount: {self.credit_amount}\n" \
@@ -46,7 +44,6 @@ def create_table():
     conn = sqlite3.connect("transactions.db")
     cursor = conn.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS transactions (
-                        "index" INTEGER PRIMARY KEY,
                         description TEXT,
                         debit_amount REAL,
                         debit_account_code TEXT,
@@ -62,10 +59,10 @@ def save_transaction(transaction):
     conn = sqlite3.connect("transactions.db")
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO transactions ("index", description, debit_amount, debit_account_code, credit_amount, 
+        INSERT INTO transactions (description, debit_amount, debit_account_code, credit_amount, 
                                  credit_account_code, reference_date, reference_code)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (transaction.index, transaction.description, transaction.debit_amount, transaction.debit_account_code,
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (transaction.description, transaction.debit_amount, transaction.debit_account_code,
           transaction.credit_amount, transaction.credit_account_code, transaction.reference_date,
           transaction.reference_code))
     conn.commit()
@@ -86,7 +83,6 @@ def check_account_exists(account_code):
 
 def add_new_transaction():
     invalid_checker = attemptChecker(max_attempts=3)
-    index = 0
     print("\n====New Transaction Module====\n")
 
     while True:
@@ -188,8 +184,7 @@ def add_new_transaction():
             except ValueError:
                 print("Invalid amount. Please enter valid numbers for debit and credit amounts.")
 
-        index += 1
-        transaction = Transaction(index, description, debit_amount, debit_account_code, credit_amount,
+        transaction = Transaction(description, debit_amount, debit_account_code, credit_amount,
                                   credit_account_code, reference_date, reference_code)
         save_transaction(transaction)
         print("Transaction saved successfully.")
@@ -208,9 +203,9 @@ def get_saved_transactions():
 
     transactions = []
     for row in rows:
-        index, description, debit_amount, debit_account_code, credit_amount, credit_account_code, \
+        description, debit_amount, debit_account_code, credit_amount, credit_account_code, \
             reference_date, reference_code = row
-        transaction = Transaction(index, description, debit_amount, debit_account_code, credit_amount,
+        transaction = Transaction(description, debit_amount, debit_account_code, credit_amount,
                                   credit_account_code, reference_date, reference_code)
         transactions.append(transaction)
 
@@ -228,7 +223,7 @@ def view_saved_transactions(transactions):
                 print(f"{t}")
                 print(transaction)
 
-        option = input("Press Enter to continue to nex page or enter 'x' to exit the viewing : ")
+        option = input("Type 'x' and press Enter to exit the viewing mode : ")
         if option.lower() == 'x':
             break
 
@@ -275,7 +270,6 @@ def edit_transaction():
 
             # Prompt for updated values
             updated_transaction = Transaction(
-                transaction.index,
                 description=input(
                     f"Enter the new description (leave empty to keep current: {transaction.description}): ") or transaction.description,
                 debit_amount=float(input(
@@ -290,7 +284,19 @@ def edit_transaction():
                     f"Enter the new reference date (leave empty to keep current: {transaction.reference_date}): ") or transaction.reference_date,
                 reference_code=input(
                     f"Enter the new reference code (leave empty to keep current: {transaction.reference_code}): ") or transaction.reference_code,
+
             )
+
+            while updated_transaction.debit_amount != updated_transaction.credit_amount:
+                print("Debit and credit amounts are not balanced. Please make sure the amounts are equal.")
+                debit_amount_str = input("Enter the corrected debit amount: ")
+                credit_amount_str = input("Enter the corrected credit amount: ")
+
+                try:
+                    updated_transaction.debit_amount = float(debit_amount_str)
+                    updated_transaction.credit_amount = float(credit_amount_str)
+                except ValueError:
+                    print("Invalid amount. Please enter valid numbers for debit and credit amounts.")
 
             # Update the transaction in the database
             conn = sqlite3.connect("transactions.db")
@@ -303,12 +309,12 @@ def edit_transaction():
                               credit_account_code = ?, 
                               reference_date = ?, 
                               reference_code = ? 
-                              WHERE "index" = ?''',
+                              WHERE rowid = ?''',
                            (updated_transaction.description, updated_transaction.debit_amount,
                             updated_transaction.debit_account_code,
                             updated_transaction.credit_amount, updated_transaction.credit_account_code,
                             updated_transaction.reference_date, updated_transaction.reference_code,
-                            updated_transaction.index))
+                            transaction_index + 1))
             conn.commit()
             conn.close()
 
