@@ -1,6 +1,6 @@
-from new_transaction import transaction_management
-from account import account_management
 import clear_screen as c
+from account import account_management
+from new_transaction import transaction_management
 from trial_balance import trial_balance
 
 

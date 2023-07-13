@@ -1,5 +1,6 @@
 import sqlite3
 import clear_screen as clean
+from subsidiary_account import subsidiary_account
 
 
 class Account:
@@ -69,11 +70,12 @@ def show_accounts(accounts):
 
 def display_menu():
     print("\n===== Account Management Menu =====\n")
-    print("1. Add Account")
-    print("2. View Accounts")
-    print("3. Edit Account")
-    print("4. Delete Account")
-    print("5. Exit")
+    print("1. Add GL Account")
+    print("2. View GL Accounts")
+    print("3. Edit GL Account")
+    print("4. Delete GL Account")
+    print("5. SL Account Management")
+    print("6. Exit")
     print("\n===== Account Management Menu =====\n")
 
 
@@ -286,7 +288,7 @@ def account_management():
     while True:
         clean.clear_screen()
         display_menu()
-        choice = input("Enter your choice (1-5): ")
+        choice = input("Enter your choice (1-6): ")
 
         if choice == "1":
             clean.clear_screen()
@@ -302,11 +304,14 @@ def account_management():
             clean.clear_screen()
             delete_account()
         elif choice == "5":
-            print("Exiting...")
+            clean.clear_screen()
+            subsidiary_account()
+        elif choice == "6":
+            print("Exiting...Goodbye!")
             break
         else:
             clean.clear_screen()
-            print("Invalid choice. Please enter a valid option (1-5).")
+            print("Invalid choice. Please enter a valid option (1-6).")
 
 
 if __name__ == "__main__":
