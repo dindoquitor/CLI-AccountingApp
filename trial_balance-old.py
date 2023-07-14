@@ -1,8 +1,6 @@
 import sqlite3
-from tabulate import tabulate
 import clear_screen as c
 import os
-import locale
 
 
 def get_account_balances():
@@ -47,17 +45,6 @@ def get_account_balances():
 account_balances, total_debit, total_credit = get_account_balances()
 
 
-def report_header():
-    province = input("Type the name of your office?: ")
-    date_of_report = input("Type the date of report: ")
-    print("\n")
-    print(province)
-    print("TRIAL BALANCE")
-    print(date_of_report)
-    print("\n")
-    return province, date_of_report
-
-
 def get_account_name(account_code):
     conn = sqlite3.connect("accounts.db")
     cursor = conn.cursor()
@@ -74,43 +61,24 @@ def get_account_name(account_code):
 def generate_report():
     while True:
         # Print the header
-        # print("{:<50s}".format("TRIAL BALANCE\n"))
-        report_header()
+        print("{:<50s}".format("TRIAL BALANCE\n"))
+        print("{:<15s} {:<30s} {:<20s} {:<20s} {:<10s}".format(
+            "\nAccount Code", "Account Name", "Debit Amount", "Credit Amount", "Balance\n"
+        ))
 
-        headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
-        table_data = []
-
-        # Set the locale to the user's default locale
-        locale.setlocale(locale.LC_ALL, "")
-
-        # Populate the table data
+        # Print the account balances
         total_balance = 0
         for account_code, (debit_amount, credit_amount) in account_balances.items():
             balance = debit_amount - credit_amount
             total_balance += balance
-            account_name = get_account_name(account_code)
+            print("{:<15s} {:<30s} {:<20.2f} {:<20.2f} {:<10.2f}".format(
+                account_code, get_account_name(account_code), debit_amount, credit_amount, balance
+            ))
 
-            # Format amounts with commas and two decimal places
-            debit_amount_formatted = locale.format_string("%.2f", debit_amount, grouping=True)
-            credit_amount_formatted = locale.format_string("%.2f", credit_amount, grouping=True)
-            balance_formatted = locale.format_string("%.2f", balance, grouping=True)
-
-            table_data.append(
-                [account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
-
-        # Append the total debit and credit amounts to the table data
-        total_debit_formatted = locale.format_string("%.2f", total_debit, grouping=True)
-        total_credit_formatted = locale.format_string("%.2f", total_credit, grouping=True)
-        total_balance_formatted = locale.format_string("%.2f", total_balance, grouping=True)
-
-        table_data.append(["Total:", "", total_debit_formatted, total_credit_formatted, total_balance_formatted])
-
-        # Generate the formatted table
-        table = tabulate(table_data, headers, tablefmt="psql", floatfmt=".2f",
-                         colalign=("left", "left", "right", "right", "right"))
-
-        # Print the table
-        print(table)
+        # Print the total debit and credit amounts
+        print("{:<15s} {:<30s} {:<20.2f} {:<20.2f} {:<10.2f}".format(
+            "Total:", "", total_debit, total_credit, total_balance
+        ))
 
         # Prompt the user for input
         choice = input("\n\nType 'X' and Enter to exit: ")
@@ -149,16 +117,11 @@ def generate_report():
 #     return report_content
 
 def generate_file():
-    province = input("Type the name of your office?: ")
-    date_of_report = input("Type the date of report: ")
     # Create an empty string to store the report content
     report_content = ""
 
     # Append the header to the report content
-    report_content += province + "\n"
-    report_content += "TRIAL BALANCE\n"
-    report_content += date_of_report + "\n"
-
+    report_content += "TRIAL BALANCE\n\n"
     headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
     table_data = []
 
@@ -177,8 +140,7 @@ def generate_file():
         credit_amount_formatted = locale.format_string("%.2f", credit_amount, grouping=True)
         balance_formatted = locale.format_string("%.2f", balance, grouping=True)
 
-        table_data.append(
-            [account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
+        table_data.append([account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
 
     # Append the total debit and credit amounts to the table data
     total_debit_formatted = locale.format_string("%.2f", total_debit, grouping=True)
@@ -188,8 +150,7 @@ def generate_file():
     table_data.append(["Total:", "", total_debit_formatted, total_credit_formatted, total_balance_formatted])
 
     # Generate the formatted table
-    table = tabulate(table_data, headers, tablefmt="psql", floatfmt=".2f",
-                     colalign=("left", "left", "right", "right", "right"))
+    table = tabulate(table_data, headers, tablefmt="psql")
 
     # Append the formatted table to the report content
     report_content += table
