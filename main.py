@@ -4,6 +4,7 @@ from new_transaction import transaction_management
 from trial_balance import trial_balance
 
 
+
 def main_menu():
     while True:
         c.clear_screen()

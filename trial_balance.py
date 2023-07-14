@@ -3,7 +3,7 @@ from tabulate import tabulate
 import clear_screen as c
 import os
 import locale
-
+from journal_entry_report import journal_entry_report
 
 def get_account_balances():
     try:
@@ -234,23 +234,27 @@ def trial_balance():
         c.clear_screen()
         print("\n===== Reports =====\n")
         print("1. Trial Balance")
-        print("2. Save Report to txt file")
-        print("3. Exit")
+        print("2. Journal Entries")
+        print("3. Save Trial Balance to File")
+        print("4. Exit")
         print("\n===== Report =====\n")
 
-        choice = input("Enter your choice (1-3): ")
+        choice = input("Enter your choice (1-4): ")
         if choice == "1":
             c.clear_screen()
             generate_report()
         elif choice == "2":
             c.clear_screen()
-            save_report()
+            journal_entry_report()
         elif choice == "3":
+            c.clear_screen()
+            save_report()
+        elif choice == "4":
             c.clear_screen()
             print("Exiting...")
             break
         else:
-            print("Invalid choice. Please enter a valid option (1-2).")
+            print("Invalid choice. Please enter a valid option (1-4).")
 
 
 if __name__ == "__main__":
