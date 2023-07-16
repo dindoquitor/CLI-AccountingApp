@@ -229,6 +229,7 @@ def view_saved_transactions(transactions):
 
 
 def edit_transaction():
+    invalid_checker = attemptChecker(max_attempts=3)
     print("\n====Edit Transaction Module====\n")
     while True:
         transactions = get_saved_transactions()
@@ -286,6 +287,21 @@ def edit_transaction():
                     f"Enter the new reference code (leave empty to keep current: {transaction.reference_code}): ") or transaction.reference_code,
 
             )
+            
+            while not check_account_exists(updated_transaction.debit_account_code) or not check_account_exists(updated_transaction.credit_account_code):
+                if invalid_checker.is_max_attempts_exceeded():
+                    print("Exceeded maximum number of invalid attempts. Exiting...")
+                    return
+                updated_transaction.debit_account_code = input("Enter the debit account code: ")
+                updated_transaction.credit_account_code = input("Enter the credit account code: ")
+
+                if not check_account_exists(updated_transaction.debit_account_code):
+                    print(f"Invalid debit account code '{updated_transaction.debit_account_code}'. Account code does not exist.")
+
+                if not check_account_exists(updated_transaction.credit_account_code):
+                    print(f"Invalid credit account code '{updated_transaction.credit_account_code}'. Account code does not exist.")
+
+                invalid_checker.increment_attempts()
 
             while updated_transaction.debit_amount != updated_transaction.credit_amount:
                 print("Debit and credit amounts are not balanced. Please make sure the amounts are equal.")

@@ -4,6 +4,8 @@ import clear_screen as c
 import os
 import locale
 from journal_entry_report import journal_entry_report
+from invalid_attempts import InvalidAttemptChecker as attemptChecker
+
 
 def get_account_balances():
     try:
@@ -47,17 +49,6 @@ def get_account_balances():
 account_balances, total_debit, total_credit = get_account_balances()
 
 
-def report_header():
-    province = input("Type the name of your office?: ")
-    date_of_report = input("Type the date of report: ")
-    print("\n")
-    print(province)
-    print("TRIAL BALANCE")
-    print(date_of_report)
-    print("\n")
-    return province, date_of_report
-
-
 def get_account_name(account_code):
     conn = sqlite3.connect("accounts.db")
     cursor = conn.cursor()
@@ -72,10 +63,11 @@ def get_account_name(account_code):
 
 
 def generate_report():
+    report_content = ""
     while True:
         # Print the header
         # print("{:<50s}".format("TRIAL BALANCE\n"))
-        report_header()
+        
 
         headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
         table_data = []
@@ -98,6 +90,7 @@ def generate_report():
             table_data.append(
                 [account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
 
+        
         # Append the total debit and credit amounts to the table data
         total_debit_formatted = locale.format_string("%.2f", total_debit, grouping=True)
         total_credit_formatted = locale.format_string("%.2f", total_credit, grouping=True)
@@ -110,15 +103,15 @@ def generate_report():
                          colalign=("left", "left", "right", "right", "right"))
 
         # Print the table
-        print(table)
+        office = input("Name of Office: ").upper()
+        report_date = input("Report Date: ").upper()
+        c.clear_screen()
+        report_content += f"{office}\nTRIAL BALANCE\n{report_date}\n\n{table}\n\033[92mCreated by: Dindo O. Quitor, CPA\033[0m\n"
+        print(report_content)
+        
+        return report_content
+        
 
-        # Prompt the user for input
-        choice = input("\n\nType 'X' and Enter to exit: ")
-        if choice.lower() == "x":
-            print("Exiting...")
-            break
-        else:
-            print()  # Print an empty line before generating another report
 
 
 # def generate_file():
@@ -148,72 +141,111 @@ def generate_report():
 #     # Return the generated report content
 #     return report_content
 
-def generate_file():
-    province = input("Type the name of your office?: ")
-    date_of_report = input("Type the date of report: ")
-    # Create an empty string to store the report content
-    report_content = ""
+def print_tb():
+    attempts = attemptChecker(max_attempts=3)
+    generate_report()
+    while True:
+        # Prompt the user for input
+        if attempts.is_max_attempts_exceeded():
+                print("Exceeded maximum number of invalid attempts. Exiting...")
+                return
+        choice = input("Type 'X' and Enter to exit: ")
+        if choice.lower() == "x":
+            print("Exiting...")
+            attempts.reset_attempts()
+            break
+        else:
+            print()  # Print an empty line before generating another report
+            attempts.increment_attempts()
+        
 
-    # Append the header to the report content
-    report_content += province + "\n"
-    report_content += "TRIAL BALANCE\n"
-    report_content += date_of_report + "\n"
+# def generate_file():
+    # province = input("Type the name of your office?: ")
+    # date_of_report = input("Type the date of report: ")
+    # # Create an empty string to store the report content
+    # report_content = ""
 
-    headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
-    table_data = []
+    # # Append the header to the report content
+    # report_content += province + "\n"
+    # report_content += "TRIAL BALANCE\n"
+    # report_content += date_of_report + "\n"
 
-    # Set the locale to the user's default locale
-    locale.setlocale(locale.LC_ALL, "")
+    # headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
+    # table_data = []
 
-    # Append the account balances to the table data
-    total_balance = 0
-    for account_code, (debit_amount, credit_amount) in account_balances.items():
-        balance = debit_amount - credit_amount
-        total_balance += balance
-        account_name = get_account_name(account_code)
+    # # Set the locale to the user's default locale
+    # locale.setlocale(locale.LC_ALL, "")
 
-        # Format amounts with commas and 2 decimal places
-        debit_amount_formatted = locale.format_string("%.2f", debit_amount, grouping=True)
-        credit_amount_formatted = locale.format_string("%.2f", credit_amount, grouping=True)
-        balance_formatted = locale.format_string("%.2f", balance, grouping=True)
+    # # Append the account balances to the table data
+    # total_balance = 0
+    # for account_code, (debit_amount, credit_amount) in account_balances.items():
+    #     balance = debit_amount - credit_amount
+    #     total_balance += balance
+    #     account_name = get_account_name(account_code)
 
-        table_data.append(
-            [account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
+    #     # Format amounts with commas and 2 decimal places
+    #     debit_amount_formatted = locale.format_string("%.2f", debit_amount, grouping=True)
+    #     credit_amount_formatted = locale.format_string("%.2f", credit_amount, grouping=True)
+    #     balance_formatted = locale.format_string("%.2f", balance, grouping=True)
 
-    # Append the total debit and credit amounts to the table data
-    total_debit_formatted = locale.format_string("%.2f", total_debit, grouping=True)
-    total_credit_formatted = locale.format_string("%.2f", total_credit, grouping=True)
-    total_balance_formatted = locale.format_string("%.2f", total_balance, grouping=True)
+    #     table_data.append(
+    #         [account_code, account_name, debit_amount_formatted, credit_amount_formatted, balance_formatted])
 
-    table_data.append(["Total:", "", total_debit_formatted, total_credit_formatted, total_balance_formatted])
+    # # Append the total debit and credit amounts to the table data
+    # total_debit_formatted = locale.format_string("%.2f", total_debit, grouping=True)
+    # total_credit_formatted = locale.format_string("%.2f", total_credit, grouping=True)
+    # total_balance_formatted = locale.format_string("%.2f", total_balance, grouping=True)
 
-    # Generate the formatted table
-    table = tabulate(table_data, headers, tablefmt="psql", floatfmt=".2f",
-                     colalign=("left", "left", "right", "right", "right"))
+    # table_data.append(["Total:", "", total_debit_formatted, total_credit_formatted, total_balance_formatted])
 
-    # Append the formatted table to the report content
-    report_content += table
+    # # Generate the formatted table
+    # table = tabulate(table_data, headers, tablefmt="psql", floatfmt=".2f",
+    #                  colalign=("left", "left", "right", "right", "right"))
 
-    # Return the generated report content
-    return report_content
+    # # Append the formatted table to the report content
+    # report_content += table
+
+    # # Return the generated report content
+    # return report_content
 
 
 def save_report_to_file(report_content, file_name):
-    try:
-        with open(file_name, "w") as file:
-            file.write(report_content)
-        print(f"Report saved successfully to '{file_name}'.")
-    except IOError:
-        print(f"Error: Failed to save report to '{file_name}'.")
+    attempts = attemptChecker(max_attempts=3)
+    while True:
+        try:
+            with open(file_name, "w") as file:
+                file.write(report_content)
+            print(f"Report saved successfully to '{file_name}'.\n")
+        except IOError:
+            print(f"Error: Failed to save report to '{file_name}'.")
+            
+        if attempts.is_max_attempts_exceeded():
+                print("Exceeded maximum number of invalid attempts. Exiting...")
+                return
+        # Prompt the user for input
+        choice = input("Type 'X' and Enter to exit: ")
+        if choice.lower() == "x":
+            print("Exiting...")
+            attempts.reset_attempts()
+            break
+        else:
+            print()  # Print an empty line before generating another report
+            attempts.increment_attempts()
+
 
 
 # Example usage
 def save_report():
+   
     # Generate the report content
-    report_content = generate_file()
+    report_content = generate_report()
 
     # Get the file name from the user
     file_name = input("Enter the file name: ")
+    if file_name == "":
+        file_name = "TRIAL BALANCE.TXT"
+    else:
+        file_name += ".txt"
 
     # Get the directory path from the user
     directory_path = input("Enter the directory path (leave empty for current directory): ")
@@ -224,6 +256,12 @@ def save_report():
 
     # Construct the full file path
     file_path = os.path.join(directory_path, file_name)
+    
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"\033[91mDeleted existing file:\033[0m {file_path}")
+    else:
+        print(f"\033[92mNo existing file found:\033[0m {file_path}")
 
     # Save the report to the specified file path
     save_report_to_file(report_content, file_path)
@@ -242,7 +280,7 @@ def trial_balance():
         choice = input("Enter your choice (1-4): ")
         if choice == "1":
             c.clear_screen()
-            generate_report()
+            print_tb()
         elif choice == "2":
             c.clear_screen()
             journal_entry_report()

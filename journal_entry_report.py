@@ -3,6 +3,7 @@ from tabulate import tabulate
 import clear_screen as c
 import os
 import locale
+from invalid_attempts import InvalidAttemptChecker as attemptChecker
 
 
 def get_journal_entries():
@@ -51,7 +52,7 @@ def generate_journal_entry_report():
     report_content = ""
     while True:
         # Print the header
-        print("{:<50s}".format("JOURNAL ENTRY REPORT\n"))
+        # print("{:<50s}".format("JOURNAL ENTRY REPORT\n"))
         headers = ["Reference Code", "Account Code", "Account Name", "Debit Amount", "Credit Amount", "Date"]
         table_data = []
 
@@ -84,48 +85,75 @@ def generate_journal_entry_report():
                 ["", credit_account, account_name_credit, "", credit_amount_formatted, ""])
             table_data.append(
                 ["","", description, "", "", ""])
-            table_data.append(" ")
+            table_data.append([" ", " ", " ", " ", " ", " "])
 
         # Generate the formatted table
         table = tabulate(table_data, headers, tablefmt="psql",
                          colalign=("left", "left", "left", "right", "right", "center"),
-                         maxcolwidths=[None, None, 150, None, None, None])
+                         maxcolwidths=[None, None, 45, None, None, None])
 
         # Print the table
-        print(table)
-        report_content += "JOURNAL ENTRIES\n"
-        report_content += table
-
+        office = input("Type the name of your office: ").upper()
+        report_date = input("Type the date of report: ").upper()
+        c.clear_screen()
+        report_content = f"{office}\nJOURNAL ENTRIES\n{report_date}\n\n{table}\n\033[92mCreated by: Dindo O. Quitor, CPA\033[0m\n"
+        print(report_content)
+        
         return report_content
 
 
 def print_journal_entry():
+    attempts = attemptChecker(max_attempts=3)
+    generate_journal_entry_report()
     while True:
-        generate_journal_entry_report()
-
+       
+        if attempts.is_max_attempts_exceeded():
+                print("Exceeded maximum number of invalid attempts. Exiting...")
+                return
         # Prompt the user for input
-        choice = input("\n\nType 'X' and Enter to exit: ")
+        choice = input("Type 'X' and Enter to exit: ")
         if choice.lower() == "x":
             print("Exiting...")
+            attempts.reset_attempts()
             break
         else:
             print()  # Print an empty line before generating another report
+            attempts.increment_attempts()
 
 
 def save_journal_entry_report(report_content, file_name):
-    try:
-        with open(file_name, "w") as file:
-            file.write(report_content)
-            print(f"Journal entry report saved successfully to '{file_name}'.")
-    except IOError:
-        print(f"Error: Failed to save journal entry report to '{file_name}'.")
+    attempts = attemptChecker(max_attempts=3)
+    while True:
+        try:
+            with open(file_name, "w") as file:
+                file.write(report_content)
+                print(f"Journal entry report saved successfully to '{file_name}'.\n")
+        except IOError:
+            print(f"Error: Failed to save journal entry report to '{file_name}'.")
+        
+        if attempts.is_max_attempts_exceeded():
+                print("Exceeded maximum number of invalid attempts. Exiting...")
+                return
+        # Prompt the user for input
+        choice = input("Type 'X' and Enter to exit: ")
+        if choice.lower() == "x":
+            print("Exiting...")
+            attempts.reset_attempts()
+            break
+        else:
+            print()  # Print an empty line before generating another report
+            attempts.increment_attempts()
 
 
 def generate_journal_entry_report_file():
     # Generate the journal entry report content
     report_content = generate_journal_entry_report()
     # Get the file name from the user
-    file_name = input("Enter the file name: ")
+    file_name = input("Enter the file name: ").upper()
+    if file_name == "":
+        file_name = "JOURNAL ENTRIES.TXT"
+    else:
+        file_name += ".txt"
 
     # Get the directory path from the user
     directory_path = input("Enter the directory path (leave empty for current directory): ")
@@ -136,6 +164,13 @@ def generate_journal_entry_report_file():
 
     # Construct the full file path
     file_path = os.path.join(directory_path, file_name)
+    
+     # Check if file already exists and delete it
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"Deleted existing file: {file_path}")
+    else:
+        print(f"No existing file found: {file_path}")
 
     # Save the journal entry report to the specified file path
     save_journal_entry_report(report_content, file_path)
