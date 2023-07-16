@@ -11,7 +11,7 @@ def set_terminal_size(height, width):
         stdscr = curses.initscr()
 
         # Set the terminal size
-        curses.resizeterm(height, width)
+        curses.resize_term(height, width)
 
     finally:
         # End the curses screen
