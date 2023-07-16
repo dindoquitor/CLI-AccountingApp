@@ -5,6 +5,7 @@ import os
 import locale
 from journal_entry_report import journal_entry_report
 from invalid_attempts import InvalidAttemptChecker as attemptChecker
+import pandas as pd
 
 
 def get_account_balances():
@@ -265,6 +266,59 @@ def save_report():
 
     # Save the report to the specified file path
     save_report_to_file(report_content, file_path)
+    
+
+def save_report_to_excel(report_content, file_name):
+    headers = ["Account Code", "Account Name", "Debit Amount", "Credit Amount", "Balance"]
+    try:
+        # Create a DataFrame from the table data
+        df = pd.DataFrame(report_content, columns=headers)
+        
+        directory_path = input("Enter the directory path (leave empty for current directory): ")
+
+    # If directory path is not provided, use the current directory
+        if not directory_path:
+            directory_path = os.getcwd()
+
+        # Save the DataFrame to an Excel file
+        file_path = os.path.join(directory_path, file_name)
+        df.to_excel(file_path, index=False)
+        
+        print(f"Report saved successfully to '{file_path}'.\n")
+    except IOError:
+        print(f"Error: Failed to save report to '{file_path}'.")
+
+
+def save_to_excel():
+    # ...
+    # Same code as before to generate the report content
+    # ...
+    report_content = generate_report()
+    # Get the file name from the user
+    file_name = input("Enter the file name: ").upper()
+    if file_name == "":
+        file_name = "TRIAL BALANCE.xlsx"
+    else:
+        file_name += ".xlsx"
+
+    # Get the directory path from the user
+    directory_path = input("Enter the directory path (leave empty for current directory): ")
+
+    # If directory path is not provided, use the current directory
+    if not directory_path:
+        directory_path = os.getcwd()
+
+    # Construct the full file path
+    file_path = os.path.join(directory_path, file_name)
+    
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        print(f"\033[91mDeleted existing file:\033[0m {file_path}")
+    else:
+        print(f"\033[92mNo existing file found:\033[0m {file_path}")
+
+    # Save the report to the specified file path
+    save_report_to_excel(report_content, file_path)
 
 
 def trial_balance():
@@ -273,8 +327,9 @@ def trial_balance():
         print("\n===== Reports =====\n")
         print("1. Trial Balance")
         print("2. Journal Entries")
-        print("3. Save Trial Balance to File")
-        print("4. Exit")
+        print("3. Save TB to Text File")
+        print("4. Save TB to Excel File")
+        print("5. Exit")
         print("\n===== Report =====\n")
 
         choice = input("Enter your choice (1-4): ")
@@ -288,6 +343,9 @@ def trial_balance():
             c.clear_screen()
             save_report()
         elif choice == "4":
+            c.clear_screen()
+            save_report_to_excel()
+        elif choice == "5":
             c.clear_screen()
             print("Exiting...")
             break
