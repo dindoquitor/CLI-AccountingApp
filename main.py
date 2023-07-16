@@ -3,9 +3,24 @@ from account import account_management
 from new_transaction import transaction_management
 from trial_balance import trial_balance
 
+import curses
+
+def set_terminal_size(height, width):
+    try:
+        # Initialize the curses screen
+        stdscr = curses.initscr()
+
+        # Set the terminal size
+        curses.resizeterm(height, width)
+
+    finally:
+        # End the curses screen
+        curses.endwin()
+
 
 
 def main_menu():
+    set_terminal_size(25, 80)
     while True:
         c.clear_screen()
         print("\n===== Main Menu =====\n")
@@ -18,6 +33,7 @@ def main_menu():
         choice = input("Enter your choice (1-3): ")
         if choice == "1":
             c.clear_screen()
+            set_terminal_size(25, 40)
             transaction_management()
         elif choice == "2":
             c.clear_screen()
